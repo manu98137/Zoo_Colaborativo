@@ -1,0 +1,25 @@
+name: Proteger clases base
+
+on: pull_request
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Comprobar que no se modifican las clases protegidas
+        run: |
+          CAMBIOS=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- \
+            src/com/virreymorcillo/zoo/model/Animal.java \
+            src/com/virreymorcillo/zoo/model/Pet.java \
+            .github/CODEOWNERS \
+            .github/workflows/)
+          if [ -n "$CAMBIOS" ]; then
+            echo "::error::Esta pull request modifica archivos protegidos:"
+            echo "$CAMBIOS"
+            exit 1
+          fi
+          echo "Correcto: no se tocan archivos protegidos."
